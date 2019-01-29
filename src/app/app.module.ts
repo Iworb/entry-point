@@ -1,8 +1,14 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
+import { CORE_INJECTION_TOKEN, ExampleCoreService, ExampleCoreModule } from 'example-core';
+import { TestingService } from 'example-core/testing';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+
+export function testInit(ts: TestingService) {
+  return () => ts.init();
+}
 
 @NgModule({
   declarations: [
@@ -10,9 +16,18 @@ import { AppComponent } from './app.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    ExampleCoreModule.forRoot()
   ],
-  providers: [],
+  providers: [
+    ExampleCoreService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: testInit,
+      multi: true,
+      deps: [TestingService, ExampleCoreService, CORE_INJECTION_TOKEN]
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

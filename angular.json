@@ -133,6 +133,41 @@
           }
         }
       }
+    },
+    "example-core": {
+      "root": "projects/example-core",
+      "sourceRoot": "projects/example-core/src",
+      "projectType": "library",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/example-core/tsconfig.lib.json",
+            "project": "projects/example-core/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/example-core/src/test.ts",
+            "tsConfig": "projects/example-core/tsconfig.spec.json",
+            "karmaConfig": "projects/example-core/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/example-core/tsconfig.lib.json",
+              "projects/example-core/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "entry-points-src"

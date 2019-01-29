@@ -1,27 +1,32 @@
-# EntryPointsSrc
+# Submodule InjectionToken issues
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.0.6.
+## Issue
 
-## Development server
+There's 2 entry points: `example-core` and `example-core/testing`. _ExampleCoreService_ has an InjectionToken _CORE_INJECTION_TOKEN_ declared in the same entry point and provided in _ExampleCoreModule.forRoot()_.
+Service from `example-core/testing` is _APP_INITIALIZER_ service. It's using _ExampleCoreService_. It's used in `.spec` files as initializer or in the application to set some specific localStorage data for tests.
+It works in application and provides this token when used in application, but it doesn't work in tests for `example-core` specs - module doesn't provide token.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+There's 2 entry points: `example-core` and `example-core/testing`.
 
-## Code scaffolding
+Testing one contains `TestingService` which should be used as _APP_INITIALIZER_. It depends on `ExampleCoreService` from main entry point, which depends on InjectionToken _CORE_INJECTION_TOKEN_. It works in application, but fails in tests for library. Both application and test module imports:
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+    ExampleCoreModule.forRoot() // provides CORE_INJECTION_TOKEN
 
-## Build
+which should provide InjectionToken _CORE_INJECTION_TOKEN_.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Both application and test has an initiallizer:
 
-## Running unit tests
+    export function testInit(ts: TestingService) {
+        return () => ts.init();
+    }
+    ...
+    {
+        provide: APP_INITIALIZER,
+        useFactory: testInit,
+        multi: true,
+        deps: [TestingService, ExampleCoreService, CORE_INJECTION_TOKEN]
+    }
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+But application works and there's correct injection token provided, but `npm run test:lib` says:
 
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+> Error: StaticInjectorError(DynamicTestModule)[InjectionToken InjectionToken for core]:<br>&nbsp;&nbsp;StaticInjectorError(Platform: core)[InjectionToken InjectionToken for core]: <br>&nbsp;&nbsp;&nbsp;&nbsp;NullInjectorError: No provider for InjectionToken InjectionToken for core!
